@@ -1,0 +1,30 @@
+# Ignorar diretórios de ambientes virtuais
+venv/
+env/
+
+# Ignorar arquivos de compilação
+__pycache__/
+*.py[cod]
+
+# Ignorar arquivos de logs
+*.log
+
+# Ignorar arquivos de banco de dados local
+*.sqlite3
+
+# Ignorar arquivos de configuração do sistema operacional
+.DS_Store
+Thumbs.db
+
+# Ignorar arquivos de IDEs e editores
+.idea/
+.vscode/
+*.swp
+
+# Ignorar dependências instaladas via pip
+*.egg-info/
+Pipfile.lock
+poetry.lock
+
+# Arquivos de credenciais e chaves de API
+.env
