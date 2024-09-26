@@ -3,4 +3,11 @@ requests
 python-dotenv
 pandas
 numpy
+nltk
+loguru==0.2.5
+langchain
+langchain-community
+#unstructured[all=docs]==0.12.0
+pdf2image
+langchain_openai
 
