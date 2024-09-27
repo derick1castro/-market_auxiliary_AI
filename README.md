@@ -49,6 +49,3 @@ O pipeline do projeto está dividido em duas fases principais: **Indexação de 
 
 5. **Melhoria do Fluxo de Geração de Respostas**:
    - Aprimorar o fluxo de geração para que seja ágil e compreensível, gerando respostas em linguagem natural baseadas nas informações extraídas dos encartes.
-
-## Link para o Projeto no GitHub
-Acesse o repositório completo [aqui](https://github.com/derick1castro/-market_auxiliary_AI).
