@@ -1,41 +1,101 @@
+import re
+import os
+import sys
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain.schema import Document
+from loguru import logger
 
-# data = '''Produto muito longo com várias informações sobre o item que podem incluir especificações, comentários adicionais, instruções de uso, e outras características. Produto: Bebida Energética, Quantidade: 500ml, Preço: R$ 7,00. Disponível em várias regiões. \nOutro produto com uma descrição igualmente longa que deve ser fragmentada apropriadamente para evitar que a informação seja perdida ou cortada de maneira inadequada. Produto: Refrigerante, Quantidade: 1,5L, Preço: R$ 5,50. Descrição detalhada e mais informações sobre o produto.'''
+# Ajusta o sys.path para garantir que a pasta 'rag' seja encontrada
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+# Importa o arquivo config do projeto
+from config import config
+
 class DataSplitter:
+    
+    """
+    Classe base abstrata para dividir dados. As subclasses devem implementar o método split_data.
+    """
+    
     def split_data(self):
+        
+        """
+        Método abstrato para ser implementado pelas subclasses.
+        """
+        
         raise NotImplementedError("Este método deve ser implementado pelas subclasses.")
 
 class SimpleDataSplitter(DataSplitter):
-    def __init__(self, chunk_size=200, chunk_overlap=40):
-        # Configura o text splitter
-        self.text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, 
-                                                            chunk_overlap=chunk_overlap,
-                                                            separators=["\n\n", "\n", " ", ""],
-                                                            length_function =len,
-                                                            is_separator_regex=False
-                                                            )
     
-    def _convert_to_documents(self, data):
+    """
+    Divisor de dados que utiliza o RecursiveCharacterTextSplitter para dividir dados textuais
+    em chunks menores e adiciona metadados ao conteúdo dividido.
+    """
+    
+    def __init__(self, chunk_size=config.CHUNK_SIZE, chunk_overlap=config.CHUNK_OVERLAP):
+        
+        """
+        Inicializa o divisor de dados com um tamanho de chunk e um tamanho de sobreposição.
+        
+        Args:
+        - chunk_size (int): O tamanho máximo de cada chunk.
+        - chunk_overlap (int): Quantidade de sobreposição entre os chunks.
         """
         
-            Converte string ou lista de strings para uma lista de objetos Document.
-            
-        """
-        if isinstance(data, str):
-            return [Document(page_content=data, metadata={})]
-        elif isinstance(data, list):
-            return [Document(page_content=doc, metadata={}) for doc in data]
-        else:
-            raise ValueError("docs precisa ser uma string ou uma lista de strings")
-    
-    def split_data(self, data):
-        # Converter 'docs' para uma lista de `Document` se for uma string ou lista de strings
-        documents = self._convert_to_documents(data)  
-              
-        # Divide os documentos em partes menores
-        return self.text_splitter.split_documents(documents)
-        
+        self.text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=chunk_size, 
+            chunk_overlap=chunk_overlap,
+            separators=["\n\n", "\n", " ", ""],
+            length_function=len,
+            is_separator_regex=False
+        )
 
-    
-    
+    def split_data(self, data):
+        
+        """
+        Divide os dados textuais em chunks menores e adiciona metadados extraídos do texto.
+
+        Args:
+        - data (list): Lista de strings representando os dados a serem divididos.
+
+        Returns:
+        - list: Uma lista de objetos Document com o conteúdo dividido e metadados associados.
+        """
+        
+        splitted = []
+        for lista_dados in data:
+            logger.info("Processando dados...")
+
+            # Extrai o nome do estabelecimento para adicionar ao metadado.
+            estabelecimento = re.search(r"Nome do estabelecimento:\s*([^,]*)", lista_dados)
+            if estabelecimento:
+                estabelecimento = estabelecimento.group(1)
+            else:
+                estabelecimento = ''
+            
+            # Extrai a categoria do produto para adicionar ao metadado.
+            categoria_produto = re.search(r'Categoria do produto:\s*([^\s-]+)', lista_dados)
+            if categoria_produto:
+                categoria_produto = categoria_produto.group(1)
+            else:
+                categoria_produto = ''
+            
+            logger.info(f"Estabelecimento: {estabelecimento}, Categoria: {categoria_produto}")
+
+            # Verifica se o dado é uma string e divide o conteúdo em chunks menores.
+            if isinstance(lista_dados, str): 
+                documents = self.text_splitter.create_documents([lista_dados])
+            elif isinstance(data, list):   
+                documents = self.text_splitter.create_documents(data)
+            
+            # Adiciona os metadados a cada documento gerado.
+            for doc in documents:
+                doc.metadata.update({
+                    'Nome do estabelecimento': estabelecimento,
+                    'Categoria do produto': categoria_produto,
+                    'updated_at': config.TODAY  # Data de atualização
+                })
+                splitted.append(doc)
+        
+        logger.success(f"{len(splitted)} documentos processados e divididos.")
+        return splitted
+

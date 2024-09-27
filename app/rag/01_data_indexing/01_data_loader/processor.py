@@ -11,9 +11,9 @@ load_dotenv()
 openai_api_key = os.getenv('OPENAI_API_KEY')
 
 # Path to your image
-image_path1 = r'../../data/raw/1.png'
-image_path2 = r'../../data/raw/2.png'
-image_path4 = r'../../data/raw/4.png'
+image_path1 = r'../../../data/raw/bh_1.png'
+image_path2 = r'../../../data/raw/bh_2.png'
+image_path4 = r'../../../data/raw/bh_3.png'
 
 filename = image_path1.split('/')[-1]
 
@@ -47,9 +47,9 @@ for img in images:
                   '{Nome do Produto} - {Valor do Produto} - {Categoria do Produto} - {Nome do Estabelecimento}'
                   
                   'Exemplo:'
-                  'Macarrão Adria Cortes 500g - R$ 2,09 - Mercearia - Assaí Atacadista'
-                  'Azeite Extra Virgem Rahma 500ml - R$ 12,90 - Mercearia - Assaí Atacadista'
-                  'Café Pilão Tipo 500g - R$ 8,39 - Grãos - BH'
+                  'Nome do Produto: Macarrão Adria Cortes 500g - Valor do Produto: R$ 2,09 - Categoria do Produto: Mercearia - Nome do Estabelecimento: Assaí Atacadista'
+                  'Nome do Produto: Azeite Extra Virgem Rahma 500ml - Valor do Produto: R$ 12,90 - Categoria do Produto: Mercearia - Nome do Estabelecimento: Assaí Atacadista'
+                  'Nome do Produto: Café Pilão Tipo 500g - Valor do Produto: R$ 8,39 - Categoria do Produto: Grãos - Nome do Estabelecimento: BH'
 
                   'Por favor, utilize as seguintes categorias para os produtos:'
                   '- Frango'
@@ -94,6 +94,7 @@ for img in images:
         ]
       }
     ]
+  
   headers = {
     "Content-Type": "application/json",
     "Authorization": f"Bearer {openai_api_key}"
@@ -139,7 +140,7 @@ def docs_to_retriever(docs):
     documents = [Document(page_content=doc, metadata={}) for doc in docs]
 
     # Dividir os documentos em pedaços menores
-    split_documents = text_splitter.split_documents(documents)
+    split_documents = text_splitter.split_documents(partes)
 
     # Usar os documentos divididos para criar o índice FAISS
     vector = FAISS.from_documents(split_documents, embeddings)
